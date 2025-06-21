@@ -1,0 +1,849 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simple Form with Table</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="description" content="Simple form with table example">
+</head>
+
+<body>
+  <div class="container">
+    <form id="dataForm">
+      <div class="form-group">
+        <label for="textbox2">Tên CTV:</label>
+        <input type="text" id="textbox2" name="textbox2">
+        <button type="button" id="pasteBtnText2" style="padding: 8px 12px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; flex-shrink: 0;">📋 Paste</button>
+      </div>
+
+      <div class="form-group">
+        <label for="largeTextBox">TT Khách:</label>
+        <textarea id="largeTextBox" name="largeTextBox" rows="3" cols="50" placeholder="Nhập thông tin khách hàng..."></textarea>
+        <button type="button" id="pasteBtn" style="padding: 8px 12px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; flex-shrink: 0;">📋 Paste</button>
+      </div>
+
+      <div class="form-group">
+        <label for="numberSelect">Số buổi:</label>
+        <input type="number" id="numberSelect" name="numberSelect" min="0" max="100" value="0">
+      </div>
+
+      <div class="form-group">
+        <label for="datePicker">Ngày:</label>
+        <input type="date" id="datePickerHidden" name="datePickerHidden">
+      </div>
+
+      <div class="form-group">
+        <label for="textbox1">Nội dung:</label>
+        <textarea id="textbox1" name="textbox1" rows="3" placeholder="Nhập nội dung..."></textarea>
+      </div>
+      
+      <div class="form-group">
+        <input type="button" id="submitBtn" value="Thêm" onclick="addToTable()">
+        <button type="button" id="copyTableBtn" onclick="copyTableToClipboard()" style="padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">📋 Copy Thông tin</button>
+      </div>
+    </form>
+    
+    <!-- Tables container -->
+    <div style="display: flex; gap: 20px; align-items: flex-start;">
+      <!-- Main table -->
+      <div style="flex: 2;">
+        <table id="dataTable">
+          <thead>
+            <tr>
+              <th>STT <button type="button" id="sortSTT" style="background: none; border: none; cursor: pointer; font-size: 12px;">↕️</button></th>
+              <th>Nội dung</th>
+              <th>Số buổi</th>
+              <th>Ngày
+                <select id="monthFilter" style="font-size: 11px; padding: 2px; margin-left: 5px;">
+                  <option value="">All</option>
+                </select>
+              </th>
+              <th>Tên CTV</th>
+              <th>Xóa</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Table data will be added here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Summary table -->
+      <div style="flex: 1; min-width: 300px;">
+        <h4 style="margin-top: 0; margin-bottom: 10px;">Thống kê theo Tên CTV</h4>
+        <table id="summaryTable" style="font-size: 14px;">
+          <thead>
+            <tr>
+              <th>Tên CTV</th>
+              <th>Tổng số buổi</th>
+              <th>Tổng số ca</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Summary data will be added here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Clear button at the bottom -->
+    <div class="form-group" style="margin-top: 20px; text-align: center;">
+      <input type="button" id="clearBtn" class="clear-btn" value="Xóa dữ liệu" onclick="clearAllData()"
+             style="padding: 10px 15px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+    </div>
+  </div>
+
+  <script>
+    // Load saved data when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      loadTableData();
+
+      // Load saved form values if they exist
+      const savedText2 = localStorage.getItem('tenCTV');
+      if (savedText2) {
+        document.getElementById('textbox2').value = savedText2;
+      }
+
+      // Set default date to today
+      const today = new Date();
+      const day = String(today.getDate()).padStart(2, '0');
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const year = today.getFullYear();
+      document.getElementById('datePickerHidden').value = `${year}-${month}-${day}`;
+
+      // Add event listener for largeTextBox changes
+      document.getElementById('largeTextBox').addEventListener('input', parseLargeTextData);
+
+      // Add select all functionality for all input fields
+      addSelectAllFunctionality();
+
+      // Add clipboard functionality
+      addClipboardFunctionality();
+
+      // Add table edit functionality
+      addTableEditFunctionality();
+
+      // Add sort functionality
+      addSortFunctionality();
+
+      // Add filter functionality
+      addFilterFunctionality();
+
+      // Add delete functionality
+      addDeleteFunctionality();
+
+    });
+
+    function addToTable() {
+      const text1 = document.getElementById('textbox1').value;
+      const text2 = document.getElementById('textbox2').value;
+      const date = document.getElementById('datePickerHidden').value;
+      const number = document.getElementById('numberSelect').value;
+      
+      if (text1 && text2 && date) {
+        // Format date from YYYY-MM-DD to D/M (remove leading zeros)
+        const [year, month, day] = date.split('-');
+        const formattedDate = `${parseInt(day)}/${parseInt(month)}`;
+
+        // Format Nội dung according to new format: "<textbox1>. Tắm <number>b <textbox2>"
+        // Check if textbox1 already ends with "." to avoid duplication
+        const separator = text1.trim().endsWith('.') ? ' ' : '. ';
+        const formattedText1 = `${text1}${separator}Tắm ${number}b ${text2}`;
+
+        // Add to table
+        const tableBody = document.querySelector('#dataTable tbody');
+        const newRow = document.createElement('tr');
+
+        // Calculate STT (current number of rows + 1) - newest gets highest number
+        const currentRowCount = tableBody.querySelectorAll('tr').length + 1;
+
+        newRow.innerHTML = `
+          <td class="stt-cell">${currentRowCount}</td>
+          <td class="editable-cell" data-field="text1">${formattedText1}</td>
+          <td class="editable-cell" data-field="number">${number}</td>
+          <td class="editable-cell" data-field="date">${formattedDate}</td>
+          <td class="editable-cell" data-field="text2">${text2}</td>
+          <td><button type="button" class="delete-btn" style="background-color: #dc3545; color: white; border: none; border-radius: 3px; padding: 4px 8px; cursor: pointer; font-size: 12px;">🗑️</button></td>
+        `;
+
+        // Insert new row at the top (newest first)
+        tableBody.insertBefore(newRow, tableBody.firstChild);
+        
+        // Save to localStorage
+        saveTableData();
+
+        // Update summary table
+        updateSummaryTable();
+
+        // Update month filter options
+        populateMonthFilter();
+        
+        // Save Tên CTV value
+        localStorage.setItem('tenCTV', text2);
+        
+        // Clear only the Nội dung field, keep the others
+        document.getElementById('textbox1').value = '';
+        document.getElementById('numberSelect').value = '0';
+        // Keep date and second text
+      } else {
+        alert('Please fill in all required fields');
+      }
+    }
+    
+    function saveTableData() {
+      const tableRows = document.querySelectorAll('#dataTable tbody tr');
+      const tableData = [];
+      
+      tableRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        // Skip the delete button column (last column)
+        if (cells.length >= 5) {
+          tableData.push({
+            stt: cells[0].textContent,
+            text1: cells[1].textContent,
+            number: cells[2].textContent,
+            date: cells[3].textContent,
+            text2: cells[4].textContent
+          });
+        }
+      });
+      
+      localStorage.setItem('tableData', JSON.stringify(tableData));
+    }
+    
+    function loadTableData() {
+      const tableBody = document.querySelector('#dataTable tbody');
+      const savedData = localStorage.getItem('tableData');
+
+      if (savedData) {
+        const tableData = JSON.parse(savedData);
+
+        // Sort data by STT descending (newest first) before displaying
+        const sortedData = tableData.sort((a, b) => parseInt(b.stt || 0) - parseInt(a.stt || 0));
+
+        sortedData.forEach(rowData => {
+          const newRow = document.createElement('tr');
+          newRow.innerHTML = `
+            <td class="stt-cell">${rowData.stt || ''}</td>
+            <td class="editable-cell" data-field="text1">${rowData.text1}</td>
+            <td class="editable-cell" data-field="number">${rowData.number}</td>
+            <td class="editable-cell" data-field="date">${rowData.date}</td>
+            <td class="editable-cell" data-field="text2">${rowData.text2}</td>
+            <td><button type="button" class="delete-btn" style="background-color: #dc3545; color: white; border: none; border-radius: 3px; padding: 4px 8px; cursor: pointer; font-size: 12px;">🗑️</button></td>
+          `;
+          tableBody.appendChild(newRow);
+        });
+
+        // Apply saved sort order
+        const savedSortOrder = localStorage.getItem('sortOrder') || 'desc';
+        sortTableBySTT(savedSortOrder);
+
+        // Update sort button icon
+        const sortSTTBtn = document.getElementById('sortSTT');
+        if (sortSTTBtn) {
+          sortSTTBtn.textContent = savedSortOrder === 'desc' ? '↓' : '↑';
+        }
+
+        // Update month filter options
+        populateMonthFilter();
+
+        // Update summary table after loading data
+        updateSummaryTable();
+      }
+    }
+
+    function addSelectAllFunctionality() {
+      // Get all input and textarea elements
+      const inputs = document.querySelectorAll('input[type="text"], input[type="number"], textarea');
+
+      inputs.forEach(input => {
+        // Skip date picker for select all (it has special functionality)
+        if (input.id === 'datePicker' || input.id === 'datePickerHidden') return;
+
+        // Add click event listener to select all text
+        input.addEventListener('click', function() {
+          this.select();
+        });
+
+        // Add focus event listener to select all text (for keyboard navigation)
+        input.addEventListener('focus', function() {
+          this.select();
+        });
+      });
+    }
+
+
+
+    function addClipboardFunctionality() {
+      const pasteBtn = document.getElementById('pasteBtn');
+      const pasteBtnText2 = document.getElementById('pasteBtnText2');
+      const largeTextBox = document.getElementById('largeTextBox');
+      const textbox2 = document.getElementById('textbox2');
+
+      // Paste button for TT Khách
+      pasteBtn.addEventListener('click', async function() {
+        try {
+          // Check if clipboard API is supported
+          if (!navigator.clipboard) {
+            alert('Clipboard API không được hỗ trợ trên trình duyệt này');
+            return;
+          }
+
+          // Read text from clipboard
+          const clipboardText = await navigator.clipboard.readText();
+
+          if (clipboardText) {
+            // Paste into largeTextBox
+            largeTextBox.value = clipboardText;
+
+            // Trigger parse function
+            parseLargeTextData();
+
+            // Show success message
+            console.log('Đã paste từ clipboard vào TT Khách:', clipboardText);
+          } else {
+            alert('Clipboard trống');
+          }
+        } catch (error) {
+          console.error('Lỗi khi đọc clipboard:', error);
+          alert('Không thể đọc clipboard. Vui lòng cho phép quyền truy cập clipboard.');
+        }
+      });
+
+      // Paste button for Tên CTV
+      pasteBtnText2.addEventListener('click', async function() {
+        try {
+          // Check if clipboard API is supported
+          if (!navigator.clipboard) {
+            alert('Clipboard API không được hỗ trợ trên trình duyệt này');
+            return;
+          }
+
+          // Read text from clipboard
+          const clipboardText = await navigator.clipboard.readText();
+
+          if (clipboardText) {
+            // Paste into textbox2
+            textbox2.value = clipboardText;
+
+            // Show success message
+            console.log('Đã paste từ clipboard vào Tên CTV:', clipboardText);
+          } else {
+            alert('Clipboard trống');
+          }
+        } catch (error) {
+          console.error('Lỗi khi đọc clipboard:', error);
+          alert('Không thể đọc clipboard. Vui lòng cho phép quyền truy cập clipboard.');
+        }
+      });
+    }
+
+    function updateSummaryTable() {
+      const dataTable = document.querySelector('#dataTable tbody');
+      const summaryTable = document.querySelector('#summaryTable tbody');
+      const rows = dataTable.querySelectorAll('tr:not([style*="display: none"])');
+
+      // Clear summary table
+      summaryTable.innerHTML = '';
+
+      // Group data by Tên CTV
+      const groupedData = {};
+
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 6) { // Now we have 6 columns including delete button
+          const tenCTV = cells[4].textContent.trim(); // Tên CTV column (at index 4)
+          const number = parseInt(cells[2].textContent) || 0; // Number column (now at index 2)
+
+          if (tenCTV) {
+            if (!groupedData[tenCTV]) {
+              groupedData[tenCTV] = {
+                total: 0,
+                count: 0
+              };
+            }
+            groupedData[tenCTV].total += number;
+            groupedData[tenCTV].count += 1;
+          }
+        }
+      });
+
+      // Sort by total descending
+      const sortedEntries = Object.entries(groupedData).sort((a, b) => b[1].total - a[1].total);
+
+      // Add rows to summary table
+      sortedEntries.forEach(([tenCTV, data]) => {
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+          <td>${tenCTV}</td>
+          <td style="text-align: center; font-weight: bold;">${data.total}</td>
+          <td style="text-align: center;">${data.count}</td>
+        `;
+        summaryTable.appendChild(newRow);
+      });
+
+      // Add total row
+      if (sortedEntries.length > 0) {
+        const grandTotal = sortedEntries.reduce((sum, [, data]) => sum + data.total, 0);
+        const totalCount = sortedEntries.reduce((sum, [, data]) => sum + data.count, 0);
+
+        const totalRow = document.createElement('tr');
+        totalRow.style.backgroundColor = '#f8f9fa';
+        totalRow.style.fontWeight = 'bold';
+        totalRow.innerHTML = `
+          <td style="text-align: center;">TỔNG CỘNG</td>
+          <td style="text-align: center; color: #dc3545;">${grandTotal}</td>
+          <td style="text-align: center;">${totalCount}</td>
+        `;
+        summaryTable.appendChild(totalRow);
+      }
+    }
+
+    function addFilterFunctionality() {
+      const monthFilter = document.getElementById('monthFilter');
+
+      monthFilter.addEventListener('change', function() {
+        const selectedMonth = this.value;
+        filterTableByMonth(selectedMonth);
+
+        // Save filter to localStorage
+        localStorage.setItem('monthFilter', selectedMonth);
+      });
+
+      // Populate filter with available months
+      populateMonthFilter();
+
+      // Load saved filter
+      const savedFilter = localStorage.getItem('monthFilter');
+      if (savedFilter) {
+        monthFilter.value = savedFilter;
+        filterTableByMonth(savedFilter);
+      }
+    }
+
+    function populateMonthFilter() {
+      const monthFilter = document.getElementById('monthFilter');
+      const tableBody = document.querySelector('#dataTable tbody');
+      const rows = tableBody.querySelectorAll('tr');
+
+      // Get unique months from data
+      const availableMonths = new Set();
+
+      rows.forEach(row => {
+        const dateCell = row.querySelector('td:nth-child(4)'); // Date column
+        if (dateCell) {
+          const dateText = dateCell.textContent.trim(); // Format: D/M or DD/MM
+          const dateParts = dateText.split('/');
+          if (dateParts.length >= 2) {
+            const month = dateParts[1].padStart(2, '0'); // Convert M to MM format for consistency
+            availableMonths.add(month);
+          }
+        }
+      });
+
+      // Clear existing options (except "All")
+      const allOption = monthFilter.querySelector('option[value=""]');
+      monthFilter.innerHTML = '';
+      monthFilter.appendChild(allOption);
+
+      // Month names mapping
+      const monthNames = {
+        '01': 'Tháng 1', '02': 'Tháng 2', '03': 'Tháng 3', '04': 'Tháng 4',
+        '05': 'Tháng 5', '06': 'Tháng 6', '07': 'Tháng 7', '08': 'Tháng 8',
+        '09': 'Tháng 9', '10': 'Tháng 10', '11': 'Tháng 11', '12': 'Tháng 12'
+      };
+
+      // Sort months and add to dropdown
+      const sortedMonths = Array.from(availableMonths).sort();
+      sortedMonths.forEach(month => {
+        const option = document.createElement('option');
+        option.value = month;
+        option.textContent = monthNames[month] || month;
+        monthFilter.appendChild(option);
+      });
+    }
+
+    function filterTableByMonth(month) {
+      const tableBody = document.querySelector('#dataTable tbody');
+      const rows = tableBody.querySelectorAll('tr');
+
+      rows.forEach(row => {
+        const dateCell = row.querySelector('td:nth-child(4)'); // Date column
+        if (dateCell) {
+          const dateText = dateCell.textContent.trim(); // Format: D/M or DD/MM
+
+          if (month === '' || month === null) {
+            // Show all rows
+            row.style.display = '';
+          } else {
+            // Check if date matches selected month
+            const dateParts = dateText.split('/');
+            if (dateParts.length >= 2) {
+              const rowMonth = dateParts[1].padStart(2, '0'); // Convert M to MM for comparison
+              if (rowMonth === month) {
+                row.style.display = '';
+              } else {
+                row.style.display = 'none';
+              }
+            } else {
+              row.style.display = 'none';
+            }
+          }
+        }
+      });
+
+      // Update summary table with filtered data
+      updateSummaryTable();
+    }
+
+    function addSortFunctionality() {
+      const sortSTTBtn = document.getElementById('sortSTT');
+      let sortOrder = 'desc'; // Current sort order: 'desc' = newest first, 'asc' = oldest first
+
+      sortSTTBtn.addEventListener('click', function() {
+        // Toggle sort order
+        sortOrder = sortOrder === 'desc' ? 'asc' : 'desc';
+
+        // Update button icon
+        sortSTTBtn.textContent = sortOrder === 'desc' ? '↓' : '↑';
+
+        // Sort table
+        sortTableBySTT(sortOrder);
+      });
+
+      // Initialize button icon
+      sortSTTBtn.textContent = '↓'; // Default: newest first (descending)
+    }
+
+    function sortTableBySTT(order) {
+      const tableBody = document.querySelector('#dataTable tbody');
+      const rows = Array.from(tableBody.querySelectorAll('tr'));
+
+      // Sort rows by STT
+      rows.sort((a, b) => {
+        const sttA = parseInt(a.querySelector('td:first-child').textContent) || 0;
+        const sttB = parseInt(b.querySelector('td:first-child').textContent) || 0;
+
+        if (order === 'asc') {
+          return sttA - sttB; // Ascending: 1, 2, 3...
+        } else {
+          return sttB - sttA; // Descending: 3, 2, 1...
+        }
+      });
+
+      // Clear table and re-add sorted rows
+      tableBody.innerHTML = '';
+      rows.forEach(row => {
+        tableBody.appendChild(row);
+      });
+
+      // Save current sort order to localStorage
+      localStorage.setItem('sortOrder', order);
+    }
+
+    function addTableEditFunctionality() {
+      const table = document.getElementById('dataTable');
+
+      // Add click event listener to table for event delegation
+      table.addEventListener('click', function(e) {
+        const cell = e.target;
+
+        // Only allow editing of editable cells
+        if (!cell.classList.contains('editable-cell') || cell.querySelector('input')) {
+          return;
+        }
+
+        // Get current value
+        const currentValue = cell.textContent;
+        const field = cell.getAttribute('data-field');
+
+        // Create input element
+        let input;
+        if (field === 'number') {
+          input = document.createElement('input');
+          input.type = 'number';
+          input.min = '0';
+          input.max = '100';
+        } else if (field === 'date') {
+          input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder = 'D/M';
+          input.maxLength = '5';
+        } else {
+          input = document.createElement('input');
+          input.type = 'text';
+        }
+
+        input.value = currentValue;
+        input.style.width = '100%';
+        input.style.border = 'none';
+        input.style.padding = '4px';
+        input.style.fontSize = 'inherit';
+        input.style.fontFamily = 'inherit';
+
+        // Replace cell content with input
+        cell.innerHTML = '';
+        cell.appendChild(input);
+        input.focus();
+        input.select();
+
+        // Save on blur or Enter
+        function saveEdit() {
+          let newValue = input.value.trim();
+
+          // Validate based on field type
+          if (field === 'number') {
+            const num = parseInt(newValue);
+            if (isNaN(num) || num < 0 || num > 100) {
+              newValue = currentValue; // Revert to original
+            }
+          } else if (field === 'date') {
+            // Auto-format date
+            if (newValue.length > 0 && !newValue.includes('/')) {
+              if (newValue.length >= 2) {
+                newValue = newValue.substring(0, 2) + '/' + newValue.substring(2, 4);
+              }
+            }
+            // Validate D/M or DD/MM format and convert to D/M (remove leading zeros)
+            if (newValue && /^\d{1,2}\/\d{1,2}$/.test(newValue)) {
+              const [day, month] = newValue.split('/');
+              newValue = `${parseInt(day)}/${parseInt(month)}`;
+            } else if (newValue) {
+              newValue = currentValue; // Revert to original if invalid format
+            }
+          }
+
+          cell.textContent = newValue;
+
+          // Save to localStorage
+          saveTableData();
+
+          // Update summary table
+          updateSummaryTable();
+        }
+
+        input.addEventListener('blur', saveEdit);
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            input.blur();
+          } else if (e.key === 'Escape') {
+            cell.textContent = currentValue; // Revert
+          }
+        });
+      });
+    }
+
+    function parseLargeTextData() {
+      const largeTextValue = document.getElementById('largeTextBox').value;
+
+      if (largeTextValue.trim() === '') {
+        document.getElementById('textbox1').value = '';
+        document.getElementById('numberSelect').value = '0';
+        return;
+      }
+
+      // Parse logic: textbox1 gets everything from start to "tắm"
+      let textbox1Value = '';
+      let numberValue = '0';
+
+      // Extract everything from start to "tắm" for textbox1
+      // Convert to lowercase for searching "tắm"
+      const lowerCaseText = largeTextValue.toLowerCase();
+      const tamIndex = lowerCaseText.indexOf('tắm');
+      if (tamIndex !== -1) {
+        textbox1Value = largeTextValue.substring(0, tamIndex).trim();
+
+        // Extract number using pattern "tắm .*(\d+)b" for number select
+        const afterTam = largeTextValue.substring(tamIndex);
+        // Look for pattern "tắm.*(\d+)b" (case insensitive, flexible spacing)
+        const numberMatch = afterTam.match(/tắm\s*.*?(\d+)b/i);
+        if (numberMatch) {
+          const extractedNumber = parseInt(numberMatch[1]);
+          // Make sure the number is within the valid range (0-100)
+          if (extractedNumber >= 0 && extractedNumber <= 100) {
+            numberValue = extractedNumber.toString();
+          }
+        }
+
+        // Debug: log the values for testing
+        console.log('afterTam:', afterTam);
+        console.log('numberMatch:', numberMatch);
+        console.log('extractedNumber:', numberValue);
+      } else {
+        // If "tắm" not found, use the whole text
+        textbox1Value = largeTextValue.trim();
+      }
+
+      // Update textbox1 and numberSelect
+      document.getElementById('textbox1').value = textbox1Value;
+      document.getElementById('numberSelect').value = numberValue;
+    }
+
+    function copyTableToClipboard() {
+      const table = document.getElementById('dataTable');
+      const rows = table.querySelectorAll('tbody tr:not([style*="display: none"])'); // Only get visible data rows after filtering
+
+      // Create array to store table data
+      const tableData = [];
+
+      // Process each data row (skip header)
+      rows.forEach((row, rowIndex) => {
+        const cells = row.querySelectorAll('td');
+
+        // Check if date column has D/M or DD/MM format before processing row
+        const dateCell = cells[3]; // Date column (index 3)
+        if (dateCell) {
+          const dateText = dateCell.textContent.trim();
+          // Only process rows with D/M or DD/MM format (contains '/' and valid length)
+          if (!dateText.includes('/') || dateText.length < 3 || dateText.length > 5) {
+            return; // Skip this row if date is not D/M or DD/MM format
+          }
+          // Additional validation: check if it's a valid date format (D/M, DD/M, D/MM, DD/MM)
+          const dateParts = dateText.split('/');
+          if (dateParts.length !== 2 || !dateParts[0] || !dateParts[1]) {
+            return; // Skip if not valid D/M format
+          }
+        } else {
+          return; // Skip if no date cell
+        }
+
+        const rowData = [];
+
+        cells.forEach((cell, cellIndex) => {
+          // Skip STT column (first column, index 0) and delete button column (last column)
+          if (cellIndex === 0 || cellIndex === cells.length - 1) return;
+
+          // Get text content and clean it up
+          let cellText = cell.textContent.trim();
+
+          // Special handling for Ngày column (index 3 in original table, index 2 after skipping STT)
+          if (cellIndex === 3) {
+            // Keep D/M format as is (no special formatting)
+            // cellText remains unchanged for D/M format
+          }
+
+          // Handle cells that might contain commas or quotes for CSV format
+          if (cellText.includes(',') || cellText.includes('"') || cellText.includes('\n')) {
+            cellText = `"${cellText.replace(/"/g, '""')}"`;
+          }
+
+          rowData.push(cellText);
+        });
+
+        // Join with tabs, but add extra tab between Nội dung (index 0) and Số buổi (index 1)
+        let formattedRow = '';
+        rowData.forEach((cellData, index) => {
+          if (index === 0) {
+            // Nội dung column - add extra tab after it
+            formattedRow += cellData + '\t\t';
+          } else if (index === rowData.length - 1) {
+            // Last column - no tab after
+            formattedRow += cellData;
+          } else {
+            // Other columns - single tab after
+            formattedRow += cellData + '\t';
+          }
+        });
+
+        tableData.push(formattedRow);
+      });
+
+      // Join all rows with newlines
+      const tableText = tableData.join('\n');
+
+      // Copy to clipboard
+      navigator.clipboard.writeText(tableText).then(() => {
+        // Show success message
+        const copyBtn = document.getElementById('copyTableBtn');
+        const originalText = copyBtn.textContent;
+        copyBtn.textContent = '✅ Copied!';
+        copyBtn.style.backgroundColor = '#28a745';
+
+        // Reset button after 2 seconds
+        setTimeout(() => {
+          copyBtn.textContent = originalText;
+          copyBtn.style.backgroundColor = '#28a745';
+        }, 2000);
+
+        console.log('Table data copied to clipboard');
+      }).catch(err => {
+        console.error('Failed to copy table data: ', err);
+        alert('Không thể copy dữ liệu. Vui lòng thử lại.');
+      });
+    }
+
+    function clearAllData() {
+      // Show confirmation dialog
+      const confirmClear = confirm('Bạn có chắc chắn muốn xóa toàn bộ dữ liệu? Hành động này không thể hoàn tác.');
+
+      if (confirmClear) {
+        // Clear table data
+        const tableBody = document.querySelector('#dataTable tbody');
+        tableBody.innerHTML = '';
+
+        // Clear summary table
+        const summaryTableBody = document.querySelector('#summaryTable tbody');
+        summaryTableBody.innerHTML = '';
+
+        // Clear month filter
+        const monthFilter = document.getElementById('monthFilter');
+        monthFilter.innerHTML = '<option value="">All</option>';
+
+        // Clear localStorage
+        localStorage.removeItem('tableData');
+        localStorage.removeItem('tenCTV');
+        localStorage.removeItem('monthFilter');
+
+        // Reset form to default values
+        document.getElementById('textbox1').value = '';
+        document.getElementById('textbox2').value = '';
+        document.getElementById('numberSelect').value = '0';
+
+        // Set date to today (DD/MM format)
+        const today = new Date();
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const year = today.getFullYear();
+        document.getElementById('datePicker').value = `${day}/${month}`;
+        document.getElementById('datePickerHidden').value = `${year}-${month}-${day}`;
+
+        alert('Đã xóa toàn bộ dữ liệu thành công!');
+      }
+    }
+
+    function addDeleteFunctionality() {
+      const table = document.getElementById('dataTable');
+
+      // Add click event listener to table for event delegation
+      table.addEventListener('click', function(e) {
+        // Check if clicked element is a delete button
+        if (e.target.classList.contains('delete-btn')) {
+          const row = e.target.closest('tr');
+
+          // Show confirmation dialog
+          const confirmDelete = confirm('Bạn có chắc chắn muốn xóa dòng này?');
+
+          if (confirmDelete) {
+            // Remove the row
+            row.remove();
+
+            // Save updated data to localStorage
+            saveTableData();
+
+            // Update summary table
+            updateSummaryTable();
+
+            // Update month filter options
+            populateMonthFilter();
+
+            console.log('Đã xóa dòng thành công');
+          }
+        }
+      });
+    }
+  </script>
+</body>
+
+</html>

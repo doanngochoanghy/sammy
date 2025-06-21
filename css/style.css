@@ -1,0 +1,517 @@
+/*! HTML5 Boilerplate v9.0.1 | MIT License | https://html5boilerplate.com/ */
+
+/* main.css 3.0.0 | MIT License | https://github.com/h5bp/main.css#readme */
+/*
+ * What follows is the result of much research on cross-browser styling.
+ * Credit left inline and big thanks to Nicolas Gallagher, Jonathan Neal,
+ * Kroc Camen, and the H5BP dev community and team.
+ */
+
+/* ==========================================================================
+   Base styles: opinionated defaults
+   ========================================================================== */
+
+html {
+  color: #222;
+  font-size: 1em;
+  line-height: 1.4;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/*
+ * Remove text-shadow in selection highlight:
+ * https://twitter.com/miketaylr/status/12228805301
+ *
+ * Customize the background color to match your design.
+ */
+
+::-moz-selection {
+  background: #b3d4fc;
+  text-shadow: none;
+}
+
+::selection {
+  background: #b3d4fc;
+  text-shadow: none;
+}
+
+/*
+ * A better looking default horizontal rule
+ */
+
+hr {
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 1px solid #ccc;
+  margin: 1em 0;
+  padding: 0;
+}
+
+/*
+ * Remove the gap between audio, canvas, iframes,
+ * images, videos and the bottom of their containers:
+ * https://github.com/h5bp/html5-boilerplate/issues/440
+ */
+
+audio,
+canvas,
+iframe,
+img,
+svg,
+video {
+  vertical-align: middle;
+}
+
+/*
+ * Remove default fieldset styles.
+ */
+
+fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * Allow only vertical resizing of textareas.
+ */
+
+textarea {
+  resize: vertical;
+}
+
+/* ==========================================================================
+   Author's custom styles
+   ========================================================================== */
+
+/* ==========================================================================
+   Helper classes
+   ========================================================================== */
+
+/*
+ * Hide visually and from screen readers
+ */
+
+.hidden,
+[hidden] {
+  display: none !important;
+}
+
+/*
+ * Hide only visually, but have it available for screen readers:
+ * https://snook.ca/archives/html_and_css/hiding-content-for-accessibility
+ *
+ * 1. For long content, line feeds are not interpreted as spaces and small width
+ *    causes content to wrap 1 word per line:
+ *    https://medium.com/@jessebeach/beware-smushed-off-screen-accessible-text-5952a4c2cbfe
+ */
+
+.visually-hidden {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+  /* 1 */
+}
+
+/*
+ * Extends the .visually-hidden class to allow the element
+ * to be focusable when navigated to via the keyboard:
+ * https://www.drupal.org/node/897638
+ */
+
+.visually-hidden.focusable:active,
+.visually-hidden.focusable:focus {
+  clip: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  position: static;
+  white-space: inherit;
+  width: auto;
+}
+
+/*
+ * Hide visually and from screen readers, but maintain layout
+ */
+
+.invisible {
+  visibility: hidden;
+}
+
+/*
+ * Clearfix: contain floats
+ *
+ * The use of `table` rather than `block` is only necessary if using
+ * `::before` to contain the top-margins of child elements.
+ */
+
+.clearfix::before,
+.clearfix::after {
+  content: "";
+  display: table;
+}
+
+.clearfix::after {
+  clear: both;
+}
+
+/* ==========================================================================
+   EXAMPLE Media Queries for Responsive Design.
+   These examples override the primary ('mobile first') styles.
+   Modify as content requires.
+   ========================================================================== */
+
+@media only screen and (min-width: 35em) {
+  /* Style adjustments for viewports that meet the condition */
+}
+
+@media print,
+  (-webkit-min-device-pixel-ratio: 1.25),
+  (min-resolution: 1.25dppx),
+  (min-resolution: 120dpi) {
+  /* Style adjustments for high resolution devices */
+}
+
+/* ==========================================================================
+   Print styles.
+   Inlined to avoid the additional HTTP request:
+   https://www.phpied.com/delay-loading-your-print-css/
+   ========================================================================== */
+
+@media print {
+  *,
+  *::before,
+  *::after {
+    background: #fff !important;
+    color: #000 !important;
+    /* Black prints faster */
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  a,
+  a:visited {
+    text-decoration: underline;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+  }
+
+  abbr[title]::after {
+    content: " (" attr(title) ")";
+  }
+
+  /*
+   * Don't show links that are fragment identifiers,
+   * or use the `javascript:` pseudo protocol
+   */
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+
+  pre {
+    white-space: pre-wrap !important;
+  }
+
+  pre,
+  blockquote {
+    border: 1px solid #999;
+    page-break-inside: avoid;
+  }
+
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+
+  p,
+  h2,
+  h3 {
+    orphans: 3;
+    widows: 3;
+  }
+
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+}
+
+/* Add these styles to your existing CSS file */
+.container {
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.form-group {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+}
+
+label {
+  display: inline-block;
+  margin-bottom: 0;
+  font-weight: bold;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+input[type="text"], input[type="number"] {
+  padding: 8px;
+  flex: 1;
+  max-width: 500px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* Override for specific inputs */
+input[type="text"]:not(#textbox2):not(#datePicker) {
+  flex: 1;
+}
+
+/* Specific styling for number input to make it smaller */
+#numberSelect {
+  max-width: 60px;
+  width: 60px;
+}
+
+/* Specific styling for textbox2 to limit width */
+#textbox2 {
+  max-width: 160px !important;
+  width: 160px !important;
+  flex: none !important;
+}
+
+/* Specific styling for textbox1 as textarea */
+#textbox1 {
+  max-width: 800px;
+  padding: 8px;
+  font-size: 14px;
+  min-height: 60px;
+  resize: vertical;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+textarea {
+  padding: 8px;
+  flex: 1;
+  max-width: 800px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 60px;
+}
+
+input[type="date"] {
+  padding: 8px;
+  flex: 1;
+  max-width: 300px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+input[type="button"] {
+  padding: 10px 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+input[type="button"]:hover {
+  background-color: #45a049;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  table-layout: auto;
+}
+
+table, th, td {
+  border: 1px solid #ddd;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* STT column styling */
+table th:first-child,
+table td:first-child {
+  width: 50px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Second Text column styling in main table (now column 5) */
+#dataTable th:nth-child(5),
+#dataTable td:nth-child(5) {
+  max-width: 160px !important;
+  width: 160px !important;
+  min-width: 160px !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Editable cell styling */
+.editable-cell {
+  cursor: pointer;
+  position: relative;
+}
+
+.editable-cell:hover {
+  background-color: #f0f8ff;
+  border: 1px solid #007bff;
+}
+
+.stt-cell {
+  background-color: #f8f9fa;
+  cursor: default;
+}
+
+/* Summary table styling */
+#summaryTable {
+  font-size: 14px;
+}
+
+#summaryTable th,
+#summaryTable td {
+  padding: 8px;
+  font-size: 13px;
+}
+
+#summaryTable th {
+  background-color: #e9ecef;
+  font-size: 12px;
+  text-align: center;
+}
+
+#summaryTable th:nth-child(1),
+#summaryTable td:nth-child(1) {
+  text-align: left;
+  width: 160px !important;
+  max-width: 160px !important;
+  min-width: 160px !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#summaryTable th:nth-child(2),
+#summaryTable th:nth-child(3),
+#summaryTable td:nth-child(2),
+#summaryTable td:nth-child(3) {
+  text-align: center;
+  font-weight: bold;
+  width: 50px;
+  max-width: 50px;
+  min-width: 40px;
+  white-space: nowrap;
+}
+
+/* Responsive design for tables */
+@media (max-width: 768px) {
+  .container > div[style*="display: flex"] {
+    flex-direction: column !important;
+  }
+
+  .container > div[style*="display: flex"] > div {
+    flex: none !important;
+    width: 100% !important;
+  }
+
+  .container {
+    padding: 5px;
+  }
+}
+
+/* Large screen optimization */
+@media (min-width: 1200px) {
+  .container {
+    padding: 15px;
+  }
+
+  table {
+    font-size: 14px;
+  }
+
+  th, td {
+    padding: 10px;
+  }
+}
+
+/* Clear button styles */
+.clear-btn {
+  padding: 10px 15px !important;
+  background-color: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  margin-left: 10px;
+  font-weight: bold !important;
+}
+
+.clear-btn:hover {
+  background-color: #c82333 !important;
+}
+
+#clearBtn {
+  padding: 10px 15px !important;
+  background-color: #dc3545 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  font-weight: bold !important;
+}
+
+#clearBtn:hover {
+  background-color: #c82333 !important;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
