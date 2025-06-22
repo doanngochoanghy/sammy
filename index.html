@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Simple Form with Table</title>
+  <title>Điền thông tin CTV</title>
   <link rel="stylesheet" href="css/style.css">
   <meta name="description" content="Simple form with table example">
 </head>
@@ -115,6 +115,9 @@
 
       // Add event listener for largeTextBox changes
       document.getElementById('largeTextBox').addEventListener('input', parseLargeTextData);
+
+      // Add tab replacement functionality for textbox1
+      addTabReplacementFunctionality();
 
       // Add select all functionality for all input fields
       addSelectAllFunctionality();
@@ -274,7 +277,46 @@
       });
     }
 
+    function addTabReplacementFunctionality() {
+      const textbox1 = document.getElementById('textbox1');
 
+      // Add input event listener to replace tabs with spaces
+      textbox1.addEventListener('input', function() {
+        const cursorPosition = this.selectionStart;
+        const originalValue = this.value;
+
+        // Replace all tab characters with spaces
+        const newValue = originalValue.replace(/\t/g, ' ');
+
+        // Only update if there were tabs to replace
+        if (newValue !== originalValue) {
+          this.value = newValue;
+
+          // Restore cursor position, accounting for the replacement
+          const tabsBeforeCursor = (originalValue.substring(0, cursorPosition).match(/\t/g) || []).length;
+          const newCursorPosition = cursorPosition;
+          this.setSelectionRange(newCursorPosition, newCursorPosition);
+        }
+      });
+
+      // Add paste event listener to handle pasted content with tabs
+      textbox1.addEventListener('paste', function(e) {
+        // Small delay to allow paste to complete, then replace tabs
+        setTimeout(() => {
+          const cursorPosition = this.selectionStart;
+          const originalValue = this.value;
+
+          // Replace all tab characters with spaces
+          const newValue = originalValue.replace(/\t/g, ' ');
+
+          if (newValue !== originalValue) {
+            this.value = newValue;
+            // Set cursor to end of pasted content
+            this.setSelectionRange(newValue.length, newValue.length);
+          }
+        }, 10);
+      });
+    }
 
     function addClipboardFunctionality() {
       const pasteBtn = document.getElementById('pasteBtn');
