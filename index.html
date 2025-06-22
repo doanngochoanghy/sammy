@@ -140,11 +140,11 @@
     });
 
     function addToTable() {
-      const text1 = document.getElementById('textbox1').value;
+      const text1 = document.getElementById('textbox1').value.replace(/\t/g, ' '); // Replace tabs with spaces
       const text2 = document.getElementById('textbox2').value;
       const date = document.getElementById('datePickerHidden').value;
       const number = document.getElementById('numberSelect').value;
-      
+
       if (text1 && text2 && date) {
         // Format date from YYYY-MM-DD to D/M (remove leading zeros)
         const [year, month, day] = date.split('-');
@@ -759,6 +759,9 @@
 
           // Get text content and clean it up
           let cellText = cell.textContent.trim();
+
+          // Replace tab characters with spaces in all cell content
+          cellText = cellText.replace(/\t/g, ' ');
 
           // Special handling for Ngày column (index 3 in original table, index 2 after skipping STT)
           if (cellIndex === 3) {
