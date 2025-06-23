@@ -137,6 +137,9 @@
       // Add delete functionality
       addDeleteFunctionality();
 
+      // Add Enter key submit functionality
+      addEnterSubmitFunctionality();
+
     });
 
     function addToTable() {
@@ -262,8 +265,9 @@
       const inputs = document.querySelectorAll('input[type="text"], input[type="number"], textarea');
 
       inputs.forEach(input => {
-        // Skip date picker for select all (it has special functionality)
-        if (input.id === 'datePicker' || input.id === 'datePickerHidden') return;
+        // Skip date picker, largeTextBox, and textbox1 for select all functionality
+        if (input.id === 'datePicker' || input.id === 'datePickerHidden' ||
+            input.id === 'largeTextBox' || input.id === 'textbox1') return;
 
         // Add click event listener to select all text
         input.addEventListener('click', function() {
@@ -886,6 +890,23 @@
             console.log('Đã xóa dòng thành công');
           }
         }
+      });
+    }
+
+    function addEnterSubmitFunctionality() {
+      // Get all form input elements
+      const formInputs = document.querySelectorAll('#dataForm input, #dataForm textarea');
+
+      formInputs.forEach(input => {
+        // Skip the submit button itself
+        if (input.type === 'button') return;
+
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent default form submission
+            addToTable(); // Call the submit function
+          }
+        });
       });
     }
   </script>
