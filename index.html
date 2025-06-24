@@ -597,7 +597,7 @@
         const cell = e.target;
 
         // Only allow editing of editable cells
-        if (!cell.classList.contains('editable-cell') || cell.querySelector('input')) {
+        if (!cell.classList.contains('editable-cell') || cell.querySelector('input') || cell.querySelector('textarea')) {
           return;
         }
 
@@ -617,6 +617,11 @@
           input.type = 'text';
           input.placeholder = 'D/M';
           input.maxLength = '5';
+        } else if (field === 'text1' || field === 'text2') {
+          // Use textarea for text fields (Nội dung and Tên CTV)
+          input = document.createElement('textarea');
+          input.rows = 2;
+          input.style.resize = 'vertical';
         } else {
           input = document.createElement('input');
           input.type = 'text';
@@ -673,7 +678,17 @@
         input.addEventListener('blur', saveEdit);
         input.addEventListener('keydown', function(e) {
           if (e.key === 'Enter') {
-            input.blur();
+            // For textarea, allow Enter for new lines, use Ctrl+Enter to save
+            if (input.tagName === 'TEXTAREA') {
+              if (e.ctrlKey) {
+                e.preventDefault();
+                input.blur();
+              }
+              // Otherwise allow Enter for new line
+            } else {
+              // For regular inputs, Enter saves
+              input.blur();
+            }
           } else if (e.key === 'Escape') {
             cell.textContent = currentValue; // Revert
           }
