@@ -394,12 +394,13 @@
       // Clear summary table
       summaryTable.innerHTML = '';
 
-      // Group data by Tên CTV
+      // Group data by Tên CTV and track latest STT for each CTV
       const groupedData = {};
 
       rows.forEach(row => {
         const cells = row.querySelectorAll('td');
         if (cells.length >= 6) { // Now we have 6 columns including delete button
+          const stt = parseInt(cells[0].textContent) || 0; // STT column (at index 0)
           const tenCTV = cells[4].textContent.trim(); // Tên CTV column (at index 4)
           const number = parseInt(cells[2].textContent) || 0; // Number column (now at index 2)
 
@@ -407,8 +408,14 @@
             if (!groupedData[tenCTV]) {
               groupedData[tenCTV] = {
                 total: 0,
-                count: 0
+                count: 0,
+                latestSTT: stt // Track the highest STT (most recent entry) for this CTV
               };
+            } else {
+              // Update latestSTT if current STT is higher (more recent)
+              if (stt > groupedData[tenCTV].latestSTT) {
+                groupedData[tenCTV].latestSTT = stt;
+              }
             }
             groupedData[tenCTV].total += number;
             groupedData[tenCTV].count += 1;
@@ -416,8 +423,8 @@
         }
       });
 
-      // Sort by total descending
-      const sortedEntries = Object.entries(groupedData).sort((a, b) => b[1].total - a[1].total);
+      // Sort by latest STT descending (most recent CTV first)
+      const sortedEntries = Object.entries(groupedData).sort((a, b) => b[1].latestSTT - a[1].latestSTT);
 
       // Add rows to summary table
       sortedEntries.forEach(([tenCTV, data]) => {
@@ -649,6 +656,9 @@
             const num = parseInt(newValue);
             if (isNaN(num) || num < 0 || num > 100) {
               newValue = currentValue; // Revert to original
+            } else {
+              // Update Nội dung column when số buổi changes
+              updateNoiDungColumn(cell, newValue);
             }
           } else if (field === 'date') {
             // Auto-format date
@@ -694,6 +704,51 @@
           }
         });
       });
+    }
+
+    function updateNoiDungColumn(numberCell, newNumber) {
+      // Find the row containing this cell
+      const row = numberCell.closest('tr');
+      if (!row) return;
+
+      // Find the Nội dung cell (first editable cell in the row)
+      const noiDungCell = row.querySelector('td[data-field="text1"]');
+      const tenCTVCell = row.querySelector('td[data-field="text2"]');
+
+      if (!noiDungCell || !tenCTVCell) return;
+
+      // Get current values
+      const currentNoiDung = noiDungCell.textContent.trim();
+      const tenCTV = tenCTVCell.textContent.trim();
+
+      // Parse the current Nội dung to extract the base text (before ". Tắm")
+      let baseText = '';
+
+      // Look for pattern ". Tắm" or " Tắm" to find where the original text ends
+      const tamPattern = /(\.\s*Tắm|\s+Tắm)/i;
+      const match = currentNoiDung.match(tamPattern);
+
+      if (match) {
+        // Extract text before the Tắm pattern
+        baseText = currentNoiDung.substring(0, match.index).trim();
+      } else {
+        // If no Tắm pattern found, try to extract everything before the last part
+        // This handles cases where the format might be different
+        const parts = currentNoiDung.split(/\s+/);
+        if (parts.length > 2) {
+          // Remove the last 2-3 parts (likely "Tắm Xb TenCTV")
+          baseText = parts.slice(0, -2).join(' ').trim();
+        } else {
+          baseText = currentNoiDung;
+        }
+      }
+
+      // Create new formatted content
+      const separator = baseText.endsWith('.') ? ' ' : '. ';
+      const newNoiDung = `${baseText}${separator}Tắm ${newNumber}b ${tenCTV}`;
+
+      // Update the Nội dung cell
+      noiDungCell.textContent = newNoiDung;
     }
 
     function parseLargeTextData() {
